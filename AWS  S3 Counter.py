@@ -17,8 +17,9 @@ def lamnda_handler(event, context)
 
 
   #if 'Contents' in response:
-    #for object in iterator:
-      #if object['Key'].endswith('/')
-        #count += 1
+    #for file in iterator:
+      #for object in ['Contents']"
+        #if object['Key'].endswith('/')
+          #count += 1
   #return (f'Number of objects in Bucket: {bucket.name} Key : {file.key}')
 #https://stackoverflow.com/questions/42673764/boto3-s3-get-files-without-getting-folders
