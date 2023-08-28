@@ -1,42 +1,81 @@
 import boto3
-import collections
-#import json
 
-ec2 = boto3.client('ec2')
-response_type = ec2.describe_instance_types()
+client = boto3.client('ec2')
 
 def lambda_handler(event, context):
- # Get all stopped instances
- stopped_instances = []
- reservations = ec2.describe_instances()
- for reservation in reservations['Reservations']:
-  for instance in reservation['Instances']:
-   if instance['State']['Name'] == 'stopped':
-    stopped_instances.append(instance)
+ InstanceTypeList = [" Get instance types for the account and paste them here"] #https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instance-type-offerings.html
 
- # Count and sort instances by memory
- instance_counts = collections.defaultdict(int)
- for instance in stopped_instances:
-  instance_counts[instance['InstanceType']] += 1
+ count = {}
+ totalcount = 0
 
- sorted_instance_counts = sorted(instance_counts.items(), key=lambda x: x[0], reverse=False)
+ print ("Stopped Instances by Instance Type")
 
- # Get all instances
- instances = reservations['Reservations']
+ response = client.describe_instance(
+  Filter=[
+   {
+     'Name': 'Instance-state-name',
+     'Values': [
+       'stopped',
+     ]
+   },
+ ]
+}
 
- # Calculate total memory for each instance type
- instance_types = {}
- for instance in instances:
-  for instance_type in instance['Instances']:
-   if instance_type['InstanceType'] in instance_types:
-    instance_types[instance_type['InstanceType']] += response_type['InstanceTypes'][0]['MemoryInfo']['SizeInMiB']
+ for instances in response['Reservations']:
+  for instance in instances['Instances']:
+   if instance['InstanceType'] not in count:
+    count[instance['InstanceType']] = 1
    else:
-    instance_types[instance_type['InstanceType']] = response_type['InstanceTypes'][0]['MemoryInfo']['SizeInMiB']
+    count[instance['InstanceType']] += 1
 
- sorted_instance_types = sorted(instance_types.items(), key=lambda x: x[1], reverse=False)
- combined_response = dict(InstanceCounts=sorted_instance_counts, InstanceTypes=sorted_instance_types)
+  totalcount += 1
+ for InstanceType in InstanceTypeList:
+  if InstanceType in count:
+   print(InstanceType + ":" + str(count[InstanceType]))
+   
+ print("total " + str(totalcount))
 
- return combined_response
+
+##################################################################################
+#import boto3
+#import collections
+##import json
+
+#ec2 = boto3.client('ec2')
+#response_type = ec2.describe_instance_types()
+
+#def lambda_handler(event, context):
+# # Get all stopped instances
+# stopped_instances = []
+# reservations = ec2.describe_instances()
+# for reservation in reservations['Reservations']:
+#  for instance in reservation['Instances']:
+#   if instance['State']['Name'] == 'stopped':
+#    stopped_instances.append(instance)
+
+# # Count and sort instances by memory
+# instance_counts = collections.defaultdict(int)
+# for instance in stopped_instances:
+#  instance_counts[instance['InstanceType']] += 1
+
+# sorted_instance_counts = sorted(instance_counts.items(), key=lambda x: x[0], reverse=False)
+
+# # Get all instances
+# instances = reservations['Reservations']
+
+# # Calculate total memory for each instance type
+# instance_types = {}
+# for instance in instances:
+#  for instance_type in instance['Instances']:
+#   if instance_type['InstanceType'] in instance_types:
+#    instance_types[instance_type['InstanceType']] += response_type['InstanceTypes'][0]['MemoryInfo']['SizeInMiB']
+#   else:
+#    instance_types[instance_type['InstanceType']] = response_type['InstanceTypes'][0]['MemoryInfo']['SizeInMiB']
+
+# sorted_instance_types = sorted(instance_types.items(), key=lambda x: x[1], reverse=False)
+# combined_response = dict(InstanceCounts=sorted_instance_counts, InstanceTypes=sorted_instance_types)
+
+# return combined_response
  
 ######################################################################## other ways outputting responses
 # # Combine the two responses in json
