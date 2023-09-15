@@ -1,6 +1,6 @@
 import boto3
 
-ec2 = boto3.client('ec2', 'us-gov-west-1')
+ec2 = boto3.client('ec2', 'us-gov-x-x')
 
 def get_instance_family(instance_type):
     return instance_type.split('.')[0]
